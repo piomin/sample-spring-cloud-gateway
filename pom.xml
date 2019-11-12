@@ -32,6 +32,7 @@
 			<groupId>io.specto</groupId>
 			<artifactId>hoverfly-java</artifactId>
 			<version>0.12.2</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
