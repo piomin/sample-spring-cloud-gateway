@@ -31,7 +31,8 @@ public class GatewayApplicationTest {
 	public void testAccountService() {
 		Account account = template.getForObject("/account/{id}", Account.class, 1);
 		Assert.assertNotNull(account);
-		Assert.assertEquals(1, account.getId());
+		Assert.assertEquals(Integer.valueOf(1), account.getId());
+		Assert.assertEquals("1234567890", account.getNumber());
 	}
 
 }
