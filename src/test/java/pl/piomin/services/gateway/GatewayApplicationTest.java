@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MockServerContainer;
 import pl.piomin.services.gateway.model.Account;
 
@@ -24,6 +25,8 @@ public class GatewayApplicationTest {
 
 	@ClassRule
 	public static MockServerContainer mockServer = new MockServerContainer();
+	@ClassRule
+	public static GenericContainer redis = new GenericContainer("redis:5.0.6").withExposedPorts(6379);
 
 	@Autowired
 	TestRestTemplate template;
@@ -34,6 +37,8 @@ public class GatewayApplicationTest {
 		System.setProperty("spring.cloud.gateway.routes[0].uri", "http://192.168.99.100:" + mockServer.getServerPort());
 		System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
 		System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
+		System.setProperty("spring.redis.host", "192.168.99.100");
+		System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
 		new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
 				.when(HttpRequest.request()
 						.withPath("/1"))
