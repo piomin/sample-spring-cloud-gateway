@@ -59,7 +59,7 @@ public class GatewayApplicationTest {
 	}
 
 	@Test
-	@BenchmarkOptions(warmupRounds = 0, concurrency = 10, benchmarkRounds = 100)
+	@BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 60)
 	public void testAccountService() {
 		ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, 1);
 		LOGGER.info("Received: status->{}, payload->{}", r.getStatusCodeValue(), r.getBody());
