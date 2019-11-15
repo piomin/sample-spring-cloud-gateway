@@ -58,7 +58,7 @@ public class GatewayCircuitBreakerTest {
 						.withPath("/1"))
 				.respond(response()
 						.withBody("{\"id\":1,\"number\":\"1234567890\"}")
-						.withDelay(TimeUnit.MILLISECONDS, 100)
+						.withDelay(TimeUnit.MILLISECONDS, 200)
 						.withHeader("Content-Type", "application/json"));
 	}
 
