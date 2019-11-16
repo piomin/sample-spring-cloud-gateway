@@ -1,5 +1,7 @@
 ## Spring Cloud Gateway Demo Project  [![Twitter](https://img.shields.io/twitter/follow/piotr_minkowski.svg?style=social&logo=twitter&label=Follow%20Me)](https://twitter.com/piotr_minkowski)
 
+<img src="https://piotrminkowski.files.wordpress.com/2019/11/rate-limiter-logo.png" title="Rate" width="120" height="60"><br/>
+
 In this project I'm demonstrating you the most interesting features of [Spring Cloud Gateway](https://cloud.spring.io/spring-cloud-gateway/reference/html/)
 
 Currently you may find here examples of: 
