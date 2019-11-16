@@ -1,4 +1,4 @@
-## Spring Cloud Gateway Demo Project  [![Twitter](https://img.shields.io/twitter/follow/piotr_minkowski.svg?style=social&logo=twitter&label=Follow%20Me)](https://twitter.com/piotr_minkowski)
+## Spring Cloud Gateway Advanced Demo Project  [![Twitter](https://img.shields.io/twitter/follow/piotr_minkowski.svg?style=social&logo=twitter&label=Follow%20Me)](https://twitter.com/piotr_minkowski)
 
 <img src="https://piotrminkowski.files.wordpress.com/2019/11/rate-limiter-logo.png" title="Rate" width="120" height="60"><br/>
 
