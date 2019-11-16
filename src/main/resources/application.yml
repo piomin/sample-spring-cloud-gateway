@@ -6,6 +6,9 @@ logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%1
 spring:
   application:
     name: gateway-service
+  redis:
+    host: 192.168.99.100
+    port: 6379
   output.ansi.enabled: ALWAYS
   cloud:
     gateway:
@@ -16,6 +19,10 @@ spring:
         - Path=/account/**
         filters:
         - RewritePath=/account/(?<path>.*), /$\{path}
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
       - id: customer-service
         uri: http://localhost:8092
         predicates:
