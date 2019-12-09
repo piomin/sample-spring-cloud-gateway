@@ -1,6 +1,7 @@
 package pl.piomin.services.gateway;
 
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
@@ -13,6 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.mockserver.client.server.MockServerClient;
+import org.mockserver.model.Delay;
 import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,8 @@ public class GatewayCircuitBreakerTest {
 
 	@Autowired
 	TestRestTemplate template;
+	final Random random = new Random();
+	int i = 0;
 
 	@BeforeClass
 	public static void init() {
@@ -52,25 +56,38 @@ public class GatewayCircuitBreakerTest {
 		System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
 		System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "CircuitBreaker");
 		System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.name", "exampleSlowCircuitBreaker");
-		System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.fallbackUri", "forward:/fallback");
-		new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
-				.when(HttpRequest.request()
-						.withPath("/1"))
+		System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.fallbackUri", "forward:/fallback/account");
+		MockServerClient client = new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort());
+		client.when(HttpRequest.request()
+				.withPath("/1"))
 				.respond(response()
 						.withBody("{\"id\":1,\"number\":\"1234567890\"}")
+//						.withDelay(TimeUnit.MILLISECONDS, 10)
+						.withHeader("Content-Type", "application/json"));
+		client.when(HttpRequest.request()
+				.withPath("/2"))
+				.respond(response()
+						.withBody("{\"id\":2,\"number\":\"1234567891\"}")
 						.withDelay(TimeUnit.MILLISECONDS, 200)
+						.withHeader("Content-Type", "application/json"));
+		client.when(HttpRequest.request()
+				.withPath("/2")
+				.withQueryStringParameter("retry", "true"))
+				.respond(response()
+						.withBody("{\"id\":2,\"number\":\"1234567891\"}")
 						.withHeader("Content-Type", "application/json"));
 	}
 
 	@Test
-	@BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 60)
+	@BenchmarkOptions(warmupRounds = 0, concurrency = 1, benchmarkRounds = 200)
 	public void testAccountService() {
-		ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, 1);
-		LOGGER.info("Received: status->{}, payload->{}", r.getStatusCodeValue(), r.getBody());
-		Assert.assertEquals(200, r.getStatusCodeValue());
+		int gen = 1 + (i++ % 2);
+		ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, gen);
+		LOGGER.info("{}. Received: status->{}, payload->{}, call->{}", i, r.getStatusCodeValue(), r.getBody(), gen);
+//		Assert.assertEquals(200, r.getStatusCodeValue());
 		Assert.assertNotNull(r.getBody());
-		Assert.assertEquals(Integer.valueOf(1), r.getBody().getId());
-		Assert.assertEquals("1234567890", r.getBody().getNumber());
+//		Assert.assertEquals(Integer.valueOf(1), r.getBody().getId());
+//		Assert.assertEquals("1234567890", r.getBody().getNumber());
 	}
 
 }
