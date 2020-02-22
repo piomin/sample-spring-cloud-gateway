@@ -41,3 +41,6 @@ spring:
         - Path=/product/**
         filters:
         - RewritePath=/product/(?<path>.*), /$\{path}
+
+#logging.level.io.github.resilience4j: DEBUG
+#logging.level.org.springframework.cloud.gateway.filter.factory: TRACE

@@ -7,8 +7,9 @@ In this project I'm demonstrating you the most interesting features of [Spring C
 ## Getting Started 
 
 Currently you may find here examples of: 
-1. Redis-based **Request Rate Limiter** - the detailed description may be found in the article on my blog [Rate Limiting In Spring Cloud Gateway With Redis](https://piotrminkowski.wordpress.com/2019/11/15/rate-limiting-in-spring-cloud-gateway-with-redis/)
-2. Circuit Breaker and Fallback with [resilience4j](https://resilience4j.readme.io/docs/getting-started) - coming soon :)
+1. Redis-based **Request Rate Limiter** - the detailed description may be found in the article on my blog [Rate Limiting In Spring Cloud Gateway With Redis](https://piotrminkowski.com/2019/11/15/rate-limiting-in-spring-cloud-gateway-with-redis/)
+2. Circuit Breaker and Fallback with [resilience4j](https://resilience4j.readme.io/docs/getting-started) - the detailed description may be found in the article on my blog
+ [Circuit Breaking In Spring Cloud Gateway With Resilience4J](https://piotrminkowski.com/2019/12/11/circuit-breaking-in-spring-cloud-gateway-with-resilience4j/)
 
 ### Usage 
 1. To build and run the main application you need to have Maven, JDK11+ and Docker.
