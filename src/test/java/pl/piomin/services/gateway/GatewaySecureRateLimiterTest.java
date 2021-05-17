@@ -2,7 +2,10 @@ package pl.piomin.services.gateway;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.mockserver.client.server.MockServerClient;
@@ -12,21 +15,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MockServerContainer;
 import pl.piomin.services.gateway.model.Account;
 
+import java.util.Base64;
+import java.util.Random;
+
 import static org.mockserver.model.HttpResponse.response;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-                properties = {"rateLimiter.non-secure=true"})
+                properties = {"rateLimiter.secure=true"})
 @RunWith(SpringRunner.class)
-public class GatewayRateLimiterTest {
+public class GatewaySecureRateLimiterTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayRateLimiterTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatewaySecureRateLimiterTest.class);
+    private Random random = new Random();
 
     @Rule
     public TestRule benchmarkRun = new BenchmarkRule();
@@ -46,9 +52,9 @@ public class GatewayRateLimiterTest {
         System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
         System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "RequestRateLimiter");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.replenishRate", "10");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.burstCapacity", "20");
-//        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
+        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.replenishRate", "1");
+        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.burstCapacity", "60");
+        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
         System.setProperty("spring.redis.host", redis.getHost());
         System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
         new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
@@ -60,14 +66,23 @@ public class GatewayRateLimiterTest {
     }
 
     @Test
-    @BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 600)
+    @BenchmarkOptions(warmupRounds = 0, concurrency = 1, benchmarkRounds = 20)
     public void testAccountService() {
-        ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, 1);
-        LOGGER.info("Received: status->{}, payload->{}, remaining->{}", r.getStatusCodeValue(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
-//		Assert.assertEquals(200, r.getStatusCodeValue());
-//		Assert.assertNotNull(r.getBody());
-//		Assert.assertEquals(Integer.valueOf(1), r.getBody().getId());
-//		Assert.assertEquals("1234567890", r.getBody().getNumber());
+        String username = "user" + (random.nextInt(3) + 1);
+        HttpHeaders headers = createHttpHeaders(username,"1234");
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, entity, Account.class, 1);
+        LOGGER.info("Received({}): status->{}, payload->{}, remaining->{}",
+                username, r.getStatusCodeValue(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
+    }
+
+    private HttpHeaders createHttpHeaders(String user, String password) {
+        String notEncoded = user + ":" + password;
+        String encodedAuth = Base64.getEncoder().encodeToString(notEncoded.getBytes());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Basic " + encodedAuth);
+        return headers;
     }
 
 }
