@@ -46,7 +46,7 @@ public class GatewayCircuitBreakerTest {
     @BeforeClass
     public static void init() {
         System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://192.168.99.100:" + mockServer.getServerPort());
+        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
         System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
         System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "CircuitBreaker");

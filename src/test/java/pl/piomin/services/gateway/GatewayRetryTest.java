@@ -1,8 +1,9 @@
 package pl.piomin.services.gateway;
 
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
-import org.junit.*;
-import org.junit.rules.TestRule;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.matchers.Times;
@@ -16,12 +17,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.containers.output.OutputFrame;
 import pl.piomin.services.gateway.model.Account;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static org.mockserver.model.HttpResponse.response;
 
@@ -41,7 +39,7 @@ public class GatewayRetryTest {
     public static void init() {
         System.setProperty("spring.cloud.gateway.httpclient.response-timeout", "100ms");
         System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://192.168.99.100:" + mockServer.getServerPort());
+        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
         System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
         System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "Retry");

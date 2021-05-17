@@ -19,8 +19,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MockServerContainer;
 import pl.piomin.services.gateway.model.Account;
 
-import java.util.concurrent.TimeUnit;
-
 import static org.mockserver.model.HttpResponse.response;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -43,13 +41,14 @@ public class GatewayRateLimiterTest {
     @BeforeClass
     public static void init() {
         System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://192.168.99.100:" + mockServer.getServerPort());
+        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
         System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
         System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "RequestRateLimiter");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.replenishRate", "10");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.burstCapacity", "20");
-        System.setProperty("spring.redis.host", "192.168.99.100");
+//        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
+        System.setProperty("spring.redis.host", redis.getHost());
         System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
         new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
                 .when(HttpRequest.request()
