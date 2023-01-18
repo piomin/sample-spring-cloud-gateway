@@ -12,7 +12,7 @@
 	</parent>
 
 	<properties>
-		<sonar.projectKey>piomin_sample-quarkus-applications</sonar.projectKey>
+		<sonar.projectKey>piomin_sample-spring-cloud-gateway</sonar.projectKey>
 		<sonar.organization>piomin</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
