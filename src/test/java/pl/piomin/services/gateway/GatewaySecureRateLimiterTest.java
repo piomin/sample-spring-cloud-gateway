@@ -26,7 +26,7 @@ import java.util.Random;
 
 import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 properties = {"rateLimiter.secure=true"})
 @RunWith(SpringRunner.class)
 public class GatewaySecureRateLimiterTest {

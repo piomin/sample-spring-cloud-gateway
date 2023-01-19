@@ -2,7 +2,10 @@ package pl.piomin.services.gateway;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.mockserver.client.server.MockServerClient;
@@ -21,7 +24,7 @@ import pl.piomin.services.gateway.model.Account;
 
 import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 properties = {"rateLimiter.non-secure=true"})
 @RunWith(SpringRunner.class)
 public class GatewayRateLimiterTest {
@@ -48,7 +51,7 @@ public class GatewayRateLimiterTest {
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "RequestRateLimiter");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.replenishRate", "10");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.burstCapacity", "20");
-//        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
+        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
         System.setProperty("spring.redis.host", redis.getHost());
         System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
         new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
