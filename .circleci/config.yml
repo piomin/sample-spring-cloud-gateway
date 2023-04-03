@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   analyze:
     docker:
-      - image: 'cimg/openjdk:11.0'
+      - image: 'cimg/openjdk:17.0'
     steps:
       - checkout
       - run:
@@ -15,15 +15,15 @@ orbs:
   tcc: atomicjar/testcontainers-cloud-orb@0.1.0
 
 executors:
-  j11:
+  jdk:
     docker:
-      - image: 'cimg/openjdk:11.0'
+      - image: 'cimg/openjdk:17.0'
 
 workflows:
   maven_test:
     jobs:
       - maven/test:
-          executor: j11
+          executor: jdk
           context: Testcontainers
           pre-steps:
             - tcc/setup
