@@ -7,7 +7,7 @@ spring:
   application:
     name: gateway-service
   redis:
-    host: 192.168.99.100
+    host: localhost
     port: 6379
   output.ansi.enabled: ALWAYS
   cloud:
