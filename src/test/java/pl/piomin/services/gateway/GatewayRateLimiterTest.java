@@ -8,7 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.utility.DockerImageName;
 import pl.piomin.services.gateway.model.Account;
 
 import static org.mockserver.model.HttpResponse.response;
@@ -35,7 +36,7 @@ public class GatewayRateLimiterTest {
     public TestRule benchmarkRun = new BenchmarkRule();
 
     @ClassRule
-    public static MockServerContainer mockServer = new MockServerContainer();
+    public static MockServerContainer mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
     @ClassRule
     public static GenericContainer redis = new GenericContainer("redis:5.0.6").withExposedPorts(6379);
 

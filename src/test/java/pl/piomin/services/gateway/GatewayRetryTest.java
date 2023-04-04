@@ -2,7 +2,7 @@ package pl.piomin.services.gateway;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
