@@ -23,6 +23,7 @@ spring:
           args:
             redis-rate-limiter.replenishRate: 10
             redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 15
       - id: customer-service
         uri: http://localhost:8092
         predicates:
