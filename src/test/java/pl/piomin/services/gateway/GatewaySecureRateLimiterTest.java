@@ -56,9 +56,9 @@ public class GatewaySecureRateLimiterTest {
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.replenishRate", "1");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.burstCapacity", "60");
         System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
-        System.setProperty("spring.redis.host", redis.getHost());
-        System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
-        new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
+        System.setProperty("spring.data.redis.host", redis.getHost());
+        System.setProperty("spring.data.redis.port", "" + redis.getMappedPort(6379));
+        new MockServerClient(mockServer.getHost(), mockServer.getServerPort())
                 .when(HttpRequest.request()
                         .withPath("/1"))
                 .respond(response()
