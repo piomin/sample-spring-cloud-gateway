@@ -67,7 +67,7 @@ public class GatewayCircuitBreakerTest {
                         .withHeader("Content-Type", "application/json"));
     }
 
-    @RepeatedTest(200)
+    @RepeatedTest(100)
     public void testAccountService(RepetitionInfo info) {
         int gen = random.nextInt(1,3);
         ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, gen);

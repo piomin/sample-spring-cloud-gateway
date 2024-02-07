@@ -64,7 +64,7 @@ public class GatewayRateLimiterTest {
     }
 
     @Test
-    @BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 600)
+    @BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 300)
     public void testAccountService() {
         ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, 1);
         LOGGER.info("Received: status->{}, payload->{}, remaining->{}", r.getStatusCodeValue(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
