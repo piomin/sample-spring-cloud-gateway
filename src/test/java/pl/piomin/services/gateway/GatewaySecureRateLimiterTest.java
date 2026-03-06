@@ -13,8 +13,9 @@ import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
@@ -30,6 +31,7 @@ import static org.mockserver.model.HttpResponse.response;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 properties = {"rateLimiter.secure=true"})
 @RunWith(SpringRunner.class)
+@AutoConfigureTestRestTemplate
 public class GatewaySecureRateLimiterTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewaySecureRateLimiterTest.class);
@@ -74,7 +76,7 @@ public class GatewaySecureRateLimiterTest {
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, entity, Account.class, 1);
         LOGGER.info("Received({}): status->{}, payload->{}, remaining->{}",
-                username, r.getStatusCodeValue(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
+                username, r.getStatusCode().value(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
     }
 
     private HttpHeaders createHttpHeaders(String user, String password) {

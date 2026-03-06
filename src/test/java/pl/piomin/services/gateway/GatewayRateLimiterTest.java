@@ -13,8 +13,9 @@ import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,6 +29,7 @@ import static org.mockserver.model.HttpResponse.response;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 properties = {"rateLimiter.non-secure=true"})
 @RunWith(SpringRunner.class)
+@AutoConfigureTestRestTemplate
 public class GatewayRateLimiterTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewayRateLimiterTest.class);
@@ -67,7 +69,7 @@ public class GatewayRateLimiterTest {
     @BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 300)
     public void testAccountService() {
         ResponseEntity<Account> r = template.exchange("/account/{id}", HttpMethod.GET, null, Account.class, 1);
-        LOGGER.info("Received: status->{}, payload->{}, remaining->{}", r.getStatusCodeValue(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
+        LOGGER.info("Received: status->{}, payload->{}, remaining->{}", r.getStatusCode().value(), r.getBody(), r.getHeaders().get("X-RateLimit-Remaining"));
 //		Assert.assertEquals(200, r.getStatusCodeValue());
 //		Assert.assertNotNull(r.getBody());
 //		Assert.assertEquals(Integer.valueOf(1), r.getBody().getId());
