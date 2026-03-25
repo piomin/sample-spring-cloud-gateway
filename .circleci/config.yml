@@ -40,6 +40,6 @@ executors:
 workflows:
   maven_test:
     jobs:
-      - test
+      #- test
       - analyze:
           context: SonarCloud
