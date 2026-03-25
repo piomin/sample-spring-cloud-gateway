@@ -12,6 +12,8 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRe
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -25,31 +27,38 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+                properties = {
+                    "spring.cloud.gateway.routes[0].id=account-service",
+                    "spring.cloud.gateway.routes[0].predicates[0]=Path=/account/**",
+                    "spring.cloud.gateway.routes[0].filters[0]=RewritePath=/account/(?<path>.*), /$\\{path}",
+                    "spring.cloud.gateway.routes[0].filters[1].name=CircuitBreaker",
+                    "spring.cloud.gateway.routes[0].filters[1].args.name=exampleSlowCircuitBreaker",
+                    "spring.cloud.gateway.routes[0].filters[1].args.fallbackUri=forward:/fallback/account"
+                })
 @Testcontainers
 @AutoConfigureTestRestTemplate
 public class GatewayCircuitBreakerTest {
 
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayRateLimiterTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayCircuitBreakerTest.class);
 
     @Container
-    public static MockServerContainer mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
+    static MockServerContainer mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
 
     @Autowired
     TestRestTemplate template;
     final Random random = new Random();
     int i = 0;
 
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.cloud.gateway.routes[0].uri",
+                () -> "http://" + mockServer.getHost() + ":" + mockServer.getMappedPort(1080));
+    }
+
     @BeforeAll
-    public static void init() {
-        System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
-        System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "CircuitBreaker");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.name", "exampleSlowCircuitBreaker");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.fallbackUri", "forward:/fallback/account");
+    static void init() {
         MockServerClient client = new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort());
         client.when(HttpRequest.request()
                         .withPath("/1"))

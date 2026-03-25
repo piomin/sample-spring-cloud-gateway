@@ -66,19 +66,18 @@ public class GatewayRateLimiterTest {
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.cloud.gateway.routes[0].uri",
-                () -> "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
+                () -> "http://" + mockServer.getHost() + ":" + mockServer.getMappedPort(1080));
         registry.add("spring.redis.host", redis::getHost);
         registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
     }
 
     @BeforeAll
     static void init() {
-        try (MockServerClient client = new MockServerClient(mockServer.getHost(), mockServer.getServerPort())) {
-            client.when(HttpRequest.request().withPath("/1"))
-                    .respond(response()
-                            .withBody("{\"id\":1,\"number\":\"1234567890\"}")
-                            .withHeader("Content-Type", "application/json"));
-        }
+        MockServerClient client = new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort());
+        client.when(HttpRequest.request().withPath("/1"))
+                .respond(response()
+                        .withBody("{\"id\":1,\"number\":\"1234567890\"}")
+                        .withHeader("Content-Type", "application/json"));
     }
 
     @Test

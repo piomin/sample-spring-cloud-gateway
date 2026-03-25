@@ -15,6 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -26,7 +28,20 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+                properties = {
+                    "spring.cloud.gateway.httpclient.response-timeout=100ms",
+                    "spring.cloud.gateway.routes[0].id=account-service",
+                    "spring.cloud.gateway.routes[0].predicates[0]=Path=/accounts/**",
+                    "spring.cloud.gateway.routes[0].filters[0]=RewritePath=/accounts/(?<path>.*), /$\\{path}",
+                    "spring.cloud.gateway.routes[0].filters[1].name=Retry",
+                    "spring.cloud.gateway.routes[0].filters[1].args.retries=10",
+                    "spring.cloud.gateway.routes[0].filters[1].args.statuses=INTERNAL_SERVER_ERROR",
+                    "spring.cloud.gateway.routes[0].filters[1].args.backoff.firstBackoff=50ms",
+                    "spring.cloud.gateway.routes[0].filters[1].args.backoff.maxBackoff=500ms",
+                    "spring.cloud.gateway.routes[0].filters[1].args.backoff.factor=2",
+                    "spring.cloud.gateway.routes[0].filters[1].args.backoff.basedOnPreviousValue=true"
+                })
 @Testcontainers
 @DirtiesContext
 @AutoConfigureTestRestTemplate
@@ -35,26 +50,19 @@ public class GatewayRetryTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewayRetryTest.class);
 
     @Container
-    public static MockServerContainer mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
+    static MockServerContainer mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
 
     @Autowired
     TestRestTemplate template;
 
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.cloud.gateway.routes[0].uri",
+                () -> "http://" + mockServer.getHost() + ":" + mockServer.getMappedPort(1080));
+    }
+
     @BeforeAll
-    public static void init() {
-        System.setProperty("spring.cloud.gateway.httpclient.response-timeout", "100ms");
-        System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri", "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
-        System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/accounts/**");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[0]", "RewritePath=/accounts/(?<path>.*), /$\\{path}");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "Retry");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.retries", "10");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.statuses", "INTERNAL_SERVER_ERROR");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.backoff.firstBackoff", "50ms");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.backoff.maxBackoff", "500ms");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.backoff.factor", "2");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.backoff.basedOnPreviousValue", "true");
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.fallbackUri", "null");
+    static void init() {
         MockServerClient client = new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort());
         client.when(HttpRequest.request()
                 .withPath("/1"), Times.exactly(3))
